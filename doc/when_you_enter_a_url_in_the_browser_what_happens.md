@@ -1,0 +1,5 @@
+#
+
+## When you enterl a url in the browser, the page loads and asks you to log in. What happened in the background?
+
+Your browser first performs a DNS lookup to convert the domain name into an IP address, then establishes a TCP connection to the web server on port 80 (HTTP) or 443 (HTTPS). If it's HTTPS, a TLS handshake occurs to establish encrypted communication using SSL certificates. Your browser sends an HTTP GET request to the server, which processes the request and determines you're not authenticated (no valid session cookie or token). The server responds with an HTTP 401 Unauthorized or 302 Redirect status code along with the login page HTML, CSS, and JavaScript. Your browser renders this login page while maintaining the session state through cookies or tokens. Common examples include accessing your bank account where the server immediately redirects unauthenticated users to a secure login form, or enterprise applications like Office 365 that check for valid authentication tokens before serving protected content.

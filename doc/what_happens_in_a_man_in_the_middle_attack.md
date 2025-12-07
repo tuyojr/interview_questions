@@ -1,0 +1,7 @@
+#
+
+## What happens in a situation like a man in the middle attack? Is there any way to avoid this?
+
+In a man-in-the-middle (MITM) attack during the login process, an attacker intercepts the communication between your browser and the legitimate server by positioning themselves between the two parties. The attacker can accomplish this through various methods like ARP spoofing on your local network, DNS hijacking to redirect traffic, or by setting up a rogue WiFi hotspot that mimics a legitimate one. When you enter the URL, instead of connecting directly to the real server, your traffic flows through the attacker's system first. The attacker then forwards your requests to the real server and relays the responses back to you, but during this process they can read, modify, or steal your data including login credentials, session tokens, and personal information. Common examples include attackers on public WiFi in coffee shops capturing unencrypted HTTP traffic, or sophisticated attacks where criminals create fake banking websites that look identical to the real ones but capture your username and password when you try to log in. This is why HTTPS is crucial - it encrypts the communication and includes certificate validation to help detect when someone is impersonating the legitimate server.
+
+As a user, always ensure websites use HTTPS (look for the padlock icon in the browser), avoid public or untrusted WiFi networks for sensitive transactions, or use a VPN to encrypt all your traffic when on public networks.
