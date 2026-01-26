@@ -1,0 +1,200 @@
+{
+  "alarms": [
+    {
+      "name": "muchtodo-alb-high-response-time",
+      "description": "Triggers when ALB response time exceeds threshold",
+      "metric": {
+        "namespace": "AWS/ApplicationELB",
+        "name": "TargetResponseTime",
+        "dimensions": [
+          {
+            "name": "LoadBalancer",
+            "value": "<ALB_ARN_SUFFIX>"
+          }
+        ],
+        "statistic": "Average",
+        "period": 60,
+        "evaluationPeriods": 2,
+        "threshold": 2.0,
+        "comparisonOperator": "GreaterThanThreshold"
+      },
+      "actions": {
+        "alarmActions": ["<SNS_TOPIC_ARN>"],
+        "okActions": ["<SNS_TOPIC_ARN>"]
+      }
+    },
+    {
+      "name": "muchtodo-alb-unhealthy-hosts",
+      "description": "Triggers when there are unhealthy hosts behind ALB",
+      "metric": {
+        "namespace": "AWS/ApplicationELB",
+        "name": "UnHealthyHostCount",
+        "dimensions": [
+          {
+            "name": "LoadBalancer",
+            "value": "<ALB_ARN_SUFFIX>"
+          },
+          {
+            "name": "TargetGroup",
+            "value": "<TARGET_GROUP_ARN_SUFFIX>"
+          }
+        ],
+        "statistic": "Average",
+        "period": 60,
+        "evaluationPeriods": 2,
+        "threshold": 0,
+        "comparisonOperator": "GreaterThanThreshold"
+      },
+      "actions": {
+        "alarmActions": ["<SNS_TOPIC_ARN>"],
+        "okActions": ["<SNS_TOPIC_ARN>"]
+      }
+    },
+    {
+      "name": "muchtodo-asg-high-cpu",
+      "description": "Triggers when ASG CPU utilization is high",
+      "metric": {
+        "namespace": "AWS/EC2",
+        "name": "CPUUtilization",
+        "dimensions": [
+          {
+            "name": "AutoScalingGroupName",
+            "value": "<ASG_NAME>"
+          }
+        ],
+        "statistic": "Average",
+        "period": 300,
+        "evaluationPeriods": 2,
+        "threshold": 80,
+        "comparisonOperator": "GreaterThanThreshold"
+      },
+      "actions": {
+        "alarmActions": ["<SNS_TOPIC_ARN>"],
+        "okActions": ["<SNS_TOPIC_ARN>"]
+      }
+    },
+    {
+      "name": "muchtodo-alb-5xx-errors",
+      "description": "Triggers when ALB returns too many 5XX errors",
+      "metric": {
+        "namespace": "AWS/ApplicationELB",
+        "name": "HTTPCode_Target_5XX_Count",
+        "dimensions": [
+          {
+            "name": "LoadBalancer",
+            "value": "<ALB_ARN_SUFFIX>"
+          }
+        ],
+        "statistic": "Sum",
+        "period": 300,
+        "evaluationPeriods": 1,
+        "threshold": 10,
+        "comparisonOperator": "GreaterThanThreshold"
+      },
+      "actions": {
+        "alarmActions": ["<SNS_TOPIC_ARN>"]
+      }
+    },
+    {
+      "name": "muchtodo-redis-high-cpu",
+      "description": "Triggers when Redis CPU utilization is high",
+      "metric": {
+        "namespace": "AWS/ElastiCache",
+        "name": "CPUUtilization",
+        "dimensions": [
+          {
+            "name": "CacheClusterId",
+            "value": "<REDIS_CLUSTER_ID>"
+          }
+        ],
+        "statistic": "Average",
+        "period": 300,
+        "evaluationPeriods": 2,
+        "threshold": 75,
+        "comparisonOperator": "GreaterThanThreshold"
+      },
+      "actions": {
+        "alarmActions": ["<SNS_TOPIC_ARN>"],
+        "okActions": ["<SNS_TOPIC_ARN>"]
+      }
+    },
+    {
+      "name": "muchtodo-redis-high-memory",
+      "description": "Triggers when Redis memory usage is high",
+      "metric": {
+        "namespace": "AWS/ElastiCache",
+        "name": "DatabaseMemoryUsagePercentage",
+        "dimensions": [
+          {
+            "name": "CacheClusterId",
+            "value": "<REDIS_CLUSTER_ID>"
+          }
+        ],
+        "statistic": "Average",
+        "period": 300,
+        "evaluationPeriods": 2,
+        "threshold": 90,
+        "comparisonOperator": "GreaterThanThreshold"
+      },
+      "actions": {
+        "alarmActions": ["<SNS_TOPIC_ARN>"],
+        "okActions": ["<SNS_TOPIC_ARN>"]
+      }
+    },
+    {
+      "name": "muchtodo-asg-no-healthy-instances",
+      "description": "Triggers when ASG has no healthy instances",
+      "metric": {
+        "namespace": "AWS/AutoScaling",
+        "name": "GroupInServiceInstances",
+        "dimensions": [
+          {
+            "name": "AutoScalingGroupName",
+            "value": "<ASG_NAME>"
+          }
+        ],
+        "statistic": "Average",
+        "period": 60,
+        "evaluationPeriods": 2,
+        "threshold": 1,
+        "comparisonOperator": "LessThanThreshold"
+      },
+      "actions": {
+        "alarmActions": ["<SNS_TOPIC_ARN>"]
+      }
+    },
+    {
+      "name": "muchtodo-cloudfront-high-error-rate",
+      "description": "Triggers when CloudFront error rate is high",
+      "metric": {
+        "namespace": "AWS/CloudFront",
+        "name": "5xxErrorRate",
+        "dimensions": [
+          {
+            "name": "DistributionId",
+            "value": "<CLOUDFRONT_DISTRIBUTION_ID>"
+          }
+        ],
+        "statistic": "Average",
+        "period": 300,
+        "evaluationPeriods": 2,
+        "threshold": 5,
+        "comparisonOperator": "GreaterThanThreshold"
+      },
+      "actions": {
+        "alarmActions": ["<SNS_TOPIC_ARN>"]
+      }
+    }
+  ],
+  "notifications": {
+    "snsTopicName": "muchtodo-infrastructure-alerts",
+    "emailEndpoints": [
+      "devops@example.com"
+    ],
+    "slackWebhook": "<SLACK_WEBHOOK_URL>"
+  },
+  "notes": {
+    "placeholders": "Replace <SNS_TOPIC_ARN>, <ALB_ARN_SUFFIX>, <TARGET_GROUP_ARN_SUFFIX>, <ASG_NAME>, <REDIS_CLUSTER_ID>, and <CLOUDFRONT_DISTRIBUTION_ID> with actual values from Terraform outputs",
+    "configuration": "These alarm definitions can be imported programmatically or used as reference for creating alarms via Terraform, AWS CLI, or CloudFormation"
+  }
+}

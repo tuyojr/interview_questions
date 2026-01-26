@@ -1,0 +1,168 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/ApplicationELB", "TargetResponseTime", {"stat": "Average"}]
+        ],
+        "period": 300,
+        "stat": "Average",
+        "region": "us-east-1",
+        "title": "ALB Average Response Time",
+        "yAxis": {
+          "left": {
+            "label": "Seconds"
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/ApplicationELB", "RequestCount", {"stat": "Sum"}]
+        ],
+        "period": 300,
+        "stat": "Sum",
+        "region": "us-east-1",
+        "title": "ALB Request Count",
+        "yAxis": {
+          "left": {
+            "label": "Count"
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/EC2", "CPUUtilization", {"stat": "Average"}]
+        ],
+        "period": 300,
+        "stat": "Average",
+        "region": "us-east-1",
+        "title": "EC2 CPU Utilization",
+        "yAxis": {
+          "left": {
+            "label": "Percent",
+            "min": 0,
+            "max": 100
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/ApplicationELB", "HealthyHostCount", {"stat": "Average"}],
+          [".", "UnHealthyHostCount", {"stat": "Average"}]
+        ],
+        "period": 300,
+        "stat": "Average",
+        "region": "us-east-1",
+        "title": "Target Health Status",
+        "yAxis": {
+          "left": {
+            "label": "Count",
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/ApplicationELB", "HTTPCode_Target_2XX_Count", {"stat": "Sum"}],
+          [".", "HTTPCode_Target_4XX_Count", {"stat": "Sum"}],
+          [".", "HTTPCode_Target_5XX_Count", {"stat": "Sum"}]
+        ],
+        "period": 300,
+        "stat": "Sum",
+        "region": "us-east-1",
+        "title": "HTTP Response Codes",
+        "yAxis": {
+          "left": {
+            "label": "Count"
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/ElastiCache", "CPUUtilization", {"stat": "Average"}],
+          [".", "NetworkBytesIn", {"stat": "Sum", "yAxis": "right"}],
+          [".", "NetworkBytesOut", {"stat": "Sum", "yAxis": "right"}]
+        ],
+        "period": 300,
+        "stat": "Average",
+        "region": "us-east-1",
+        "title": "Redis Performance",
+        "yAxis": {
+          "left": {
+            "label": "Percent"
+          },
+          "right": {
+            "label": "Bytes"
+          }
+        }
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/ec2/nonprod/backend'\n| fields @timestamp, @message\n| filter @message like /ERROR/\n| sort @timestamp desc\n| limit 20",
+        "region": "us-east-1",
+        "title": "Recent Backend Errors",
+        "stacked": false
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/CloudFront", "Requests", {"stat": "Sum"}],
+          [".", "BytesDownloaded", {"stat": "Sum", "yAxis": "right"}]
+        ],
+        "period": 300,
+        "stat": "Sum",
+        "region": "us-east-1",
+        "title": "CloudFront Activity",
+        "yAxis": {
+          "left": {
+            "label": "Requests"
+          },
+          "right": {
+            "label": "Bytes"
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/AutoScaling", "GroupDesiredCapacity", {"stat": "Average"}],
+          [".", "GroupInServiceInstances", {"stat": "Average"}],
+          [".", "GroupMinSize", {"stat": "Average"}],
+          [".", "GroupMaxSize", {"stat": "Average"}]
+        ],
+        "period": 300,
+        "stat": "Average",
+        "region": "us-east-1",
+        "title": "Auto Scaling Group Status",
+        "yAxis": {
+          "left": {
+            "label": "Count",
+            "min": 0
+          }
+        }
+      }
+    }
+  ]
+}

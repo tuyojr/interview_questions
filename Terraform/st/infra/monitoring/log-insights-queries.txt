@@ -1,0 +1,214 @@
+# CloudWatch Logs Insights Queries for MuchToDo Application
+# Copy and paste these queries into CloudWatch Logs Insights console
+# Make sure to select the appropriate log group(s) before running
+
+################################################################################
+# 1. ERROR LOG ANALYSIS
+################################################################################
+# Find all errors in the backend logs with context
+fields @timestamp, @message, @logStream
+| filter @message like /ERROR|Error|error/
+| sort @timestamp desc
+| limit 100
+
+################################################################################
+# 2. REQUEST LATENCY ANALYSIS
+################################################################################
+# Analyze API request latencies (assumes structured logging with duration field)
+fields @timestamp, method, path, duration, status
+| filter ispresent(duration)
+| stats avg(duration) as avg_duration,
+        max(duration) as max_duration,
+        min(duration) as min_duration,
+        count() as request_count
+  by path
+| sort avg_duration desc
+
+################################################################################
+# 3. TOP API ENDPOINTS
+################################################################################
+# Find most frequently accessed API endpoints
+fields @timestamp, path, method, status
+| filter ispresent(path)
+| stats count() as request_count by path, method
+| sort request_count desc
+| limit 20
+
+################################################################################
+# 4. FAILED HEALTH CHECKS
+################################################################################
+# Identify failed health check requests
+fields @timestamp, @message, path, status
+| filter path = "/health" and status >= 500
+| sort @timestamp desc
+| limit 50
+
+################################################################################
+# 5. HTTP STATUS CODE DISTRIBUTION
+################################################################################
+# Distribution of HTTP status codes
+fields @timestamp, status
+| filter ispresent(status)
+| stats count() as count by status
+| sort status asc
+
+################################################################################
+# 6. SLOW REQUESTS (> 2 seconds)
+################################################################################
+# Find slow requests that take more than 2 seconds
+fields @timestamp, method, path, duration, status, @message
+| filter duration > 2000
+| sort duration desc
+| limit 50
+
+################################################################################
+# 7. ERROR RATE BY TIME
+################################################################################
+# Calculate error rate over time (5-minute intervals)
+fields @timestamp, status
+| filter ispresent(status)
+| stats
+    count() as total_requests,
+    sum(status >= 500) as server_errors,
+    sum(status >= 400 and status < 500) as client_errors
+  by bin(5m)
+| fields @timestamp,
+         total_requests,
+         server_errors,
+         client_errors,
+         (server_errors / total_requests * 100) as server_error_rate,
+         (client_errors / total_requests * 100) as client_error_rate
+
+################################################################################
+# 8. UNIQUE USERS/IPS
+################################################################################
+# Count unique IP addresses accessing the application
+fields @timestamp, ip_address
+| filter ispresent(ip_address)
+| stats count_distinct(ip_address) as unique_ips by bin(1h)
+
+################################################################################
+# 9. APPLICATION STARTUP LOGS
+################################################################################
+# Find application startup and initialization messages
+fields @timestamp, @message, @logStream
+| filter @message like /Starting|Initialized|Ready|Listening/
+| sort @timestamp desc
+| limit 50
+
+################################################################################
+# 10. EXCEPTION STACK TRACES
+################################################################################
+# Find detailed exception stack traces
+fields @timestamp, @message
+| filter @message like /Exception|Traceback|Stack trace/
+| parse @message /(?<exception_type>\w+Exception)/
+| sort @timestamp desc
+| limit 20
+
+################################################################################
+# 11. DATABASE QUERY PERFORMANCE
+################################################################################
+# Analyze database query performance (if logged)
+fields @timestamp, query, query_time, @message
+| filter @message like /query|database|sql/
+| stats avg(query_time) as avg_query_time,
+        max(query_time) as max_query_time,
+        count() as query_count
+  by query
+| sort avg_query_time desc
+
+################################################################################
+# 12. REDIS OPERATIONS
+################################################################################
+# Track Redis cache operations
+fields @timestamp, @message, operation, key
+| filter @message like /redis|cache/
+| stats count() as operation_count by operation
+| sort operation_count desc
+
+################################################################################
+# 13. REQUEST METHOD DISTRIBUTION
+################################################################################
+# Distribution of HTTP methods
+fields @timestamp, method
+| filter ispresent(method)
+| stats count() as count by method
+| sort count desc
+
+################################################################################
+# 14. AUTHENTICATION FAILURES
+################################################################################
+# Find authentication and authorization failures
+fields @timestamp, @message, path, status, user
+| filter @message like /auth|unauthorized|forbidden/ or status in [401, 403]
+| sort @timestamp desc
+| limit 100
+
+################################################################################
+# 15. CONCURRENT REQUESTS
+################################################################################
+# Estimate concurrent requests over time
+fields @timestamp
+| stats count() as requests by bin(10s)
+| sort @timestamp desc
+
+################################################################################
+# 16. RESPONSE SIZE ANALYSIS
+################################################################################
+# Analyze response sizes (if logged)
+fields @timestamp, path, response_size
+| filter ispresent(response_size)
+| stats avg(response_size) as avg_size,
+        max(response_size) as max_size,
+        sum(response_size) as total_size,
+        count() as request_count
+  by path
+| sort avg_size desc
+
+################################################################################
+# 17. USER AGENT ANALYSIS
+################################################################################
+# Analyze user agents accessing the API
+fields @timestamp, user_agent
+| filter ispresent(user_agent)
+| parse user_agent /(?<browser>[A-Za-z]+)\/[0-9\.]+/
+| stats count() as count by browser
+| sort count desc
+
+################################################################################
+# 18. CORRELATION ID TRACKING
+################################################################################
+# Track requests by correlation/trace ID
+fields @timestamp, @message, correlation_id, path, status
+| filter correlation_id = "<SPECIFIC_CORRELATION_ID>"
+| sort @timestamp asc
+
+################################################################################
+# 19. MEMORY AND RESOURCE USAGE
+################################################################################
+# Track memory and resource usage (if logged)
+fields @timestamp, @message, memory_used, cpu_percent
+| filter ispresent(memory_used)
+| stats avg(memory_used) as avg_memory,
+        max(memory_used) as max_memory,
+        avg(cpu_percent) as avg_cpu
+  by bin(5m)
+
+################################################################################
+# 20. DEPLOYMENT AND RESTART EVENTS
+################################################################################
+# Track deployment and application restart events
+fields @timestamp, @message, @logStream
+| filter @message like /deployment|restart|shutdown|terminated|graceful/
+| sort @timestamp desc
+| limit 50
+
+################################################################################
+# NOTES
+################################################################################
+# - Adjust field names based on your actual log structure
+# - Some queries assume structured JSON logging
+# - Replace placeholder values like <SPECIFIC_CORRELATION_ID> with actual values
+# - Modify time ranges and limits as needed
+# - Combine multiple log groups for comprehensive analysis
