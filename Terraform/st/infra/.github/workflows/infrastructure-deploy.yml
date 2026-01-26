@@ -1,0 +1,120 @@
+name: Infrastructure Deployment
+
+on:
+  push:
+    branches:
+      - main
+      # - develop
+    paths:
+      - 'infra/terraform/**'
+      - 'infra/.github/workflows/infrastructure-deploy.yml'
+  pull_request:
+    branches:
+      - main
+      # - develop
+    paths:
+      - 'infra/terraform/**'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action to perform'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'nonprod'
+        type: choice
+        options:
+          - nonprod
+          - prod
+
+env:
+  TERRAFORM_VERSION: '1.14.3'
+  AWS_REGION: 'us-east-1'
+
+jobs:
+  terraform:
+    name: Terraform
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/terraform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        if: github.event.inputs.action != 'destroy'
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        id: apply
+        if: github.event.inputs.action == 'apply'
+        run: terraform apply -auto-approve tfplan
+
+      - name: Terraform Plan Destroy
+        if: github.event.inputs.action == 'destroy'
+        run: terraform plan -destroy -out=tfplan
+
+      - name: Terraform Destroy
+        if: github.event.inputs.action == 'destroy'
+        run: terraform apply -auto-approve tfplan
+        continue-on-error: true
+
+      - name: Get Terraform Outputs
+        if: steps.apply.outcome == 'success'
+        id: outputs
+        run: |
+          echo "alb_url=$(terraform output -raw alb_url 2>/dev/null || echo 'N/A')" >> $GITHUB_OUTPUT
+          echo "cloudfront_url=$(terraform output -raw cloudfront_url 2>/dev/null || echo 'N/A')" >> $GITHUB_OUTPUT
+
+      - name: Create Deployment Summary
+        if: steps.apply.outcome == 'success'
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          # Infrastructure Deployment Summary
+
+          ## Status: ✅ Success
+
+          ### Outputs
+          - **ALB URL**: ${{ steps.outputs.outputs.alb_url }}
+          - **CloudFront URL**: ${{ steps.outputs.outputs.cloudfront_url }}
+
+          ### Details
+          - **Environment**: ${{ github.event.inputs.environment || 'nonprod' }}
+          - **Deployed by**: @${{ github.actor }}
+          - **Commit**: ${{ github.sha }}
+          - **Timestamp**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          EOF
+
+  sync-secrets:
+    name: Sync Secrets to AWS
+    needs: terraform-apply
+    if: needs.terraform-apply.result == 'success'
+    uses: ./.github/workflows/sync-secrets.yml
+    with:
+      environment: ${{ github.event.inputs.environment || 'nonprod' }}
+    secrets: inherit
