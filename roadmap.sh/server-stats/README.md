@@ -2,7 +2,7 @@
 
 This is a minimal, easy-to-read script for basic Linux server stats. A project from [roadmap.sh's DevOps projects](https://roadmap.sh/projects/server-stats)
 
-> [https://roadmap.sh/projects/server-stats](https://roadmap.sh/projects/server-stats)
+https://roadmap.sh/projects/server-stats
 
 ## Usage
 
